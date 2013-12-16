@@ -14,5 +14,5 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "local_settings")
 from graphite.dashboard.models import Dashboard
 
 if __name__ == '__main__':
-    for obj in Dashboard.objects:
+    for obj in Dashboard.objects.all():
         print obj
