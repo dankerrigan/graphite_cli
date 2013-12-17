@@ -2,7 +2,8 @@ __author__ = 'dankerrigan'
 
 import os
 import sys
-from urlparse import urlparse, parse_qs
+from urlparse import urlparse, parse_qs, parse_qsl, urlsplit, urlunsplit
+from urllib import urlencode
 
 from user import profile_for_user
 
@@ -63,6 +64,52 @@ def save_graph(username, name, url):
         print 'Could not find profile for user {0}'.format(username)
         return False
 
+def escape_query_string(qs):
+    query = parse_qsl(qs)
+    result = []
+
+    for key, value in query:
+        result.append('='.join([key, escape_query_value(value)]))
+
+    return '&'.join(result)
+
+def escape_query_value(qv):
+    result = []
+    escape = {',': '%2C',
+              '/': '%2F',
+              '?': '%3F',
+              ':': '%3A',
+              '@': '%40',
+              '&': '%26',
+              '=': '%3D',
+              '+': '%2B',
+              '$': '%24',
+              '#': '%23',
+              '%': '%25',
+              ' ': '%20'}
+
+    for c in qv:
+        if c in escape:
+            result.append(escape[c])
+        else:
+            result.append(c)
+
+    return ''.join(result)
+
+
+def escape_url_query_string(url):
+    parsed_q = urlparse(url)
+
+    encoded_q = escape_query_string(parsed_q.query)
+
+    result = list(urlsplit(url)[0:5])
+
+    result[3] = encoded_q
+
+    new_url = urlunsplit(result)
+
+    return new_url
+
 if __name__ == '__main__':
     if sys.argv[1] == 'list':
         username = sys.argv[2]
@@ -88,7 +135,11 @@ if __name__ == '__main__':
         name = sys.argv[3]
         url = sys.argv[4]
 
-        success = save_graph(username, name, url)
+        new_url = escape_url_query_string(url)
+
+        # print new_url
+        # success = False
+        success = save_graph(username, name, new_url)
 
         if success:
             print 'Saved graph successfully'
